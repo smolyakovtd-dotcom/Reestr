@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Праздничные хлопушки на CSS</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to bottom, #fffacd, #ffffff); /* Светлый праздничный фон */
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+            font-family: Arial, sans-serif;
+        }
+
+        .scene {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .popper {
+            position: relative;
+            width: 40px; /* Узкий цилиндр как на картинке */
+            height: 200px;
+            transform: rotate(-20deg); /* Легкий наклон для динамики */
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.3s ease;
+        }
+
+        .popper:hover,
+        .popper:active {
+            transform: rotate(-20deg) scale(1.1);
+        }
+
+        /* Тело хлопушки: цилиндр с диагональными полосами, как на картинке */
+        .popper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                135deg,
+                #ffff00 0px, /* черный фон */
+                #42aaff 15px,
+                #ff0033 15px, /* Розовые полосы */
+                #d87093 30px
+            );
+            border-radius: 5px; /* Закругленные концы для цилиндрической формы */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3), inset 0 -4px 8px rgba(139, 69, 19, 0.2), inset 0 4px 8px rgba(255, 255, 255, 0.5); /* Тени и блики для объема */
+        }
+
+        /* Коричневый конец сверху */
+        .popper::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 0;
+            width: 100%;
+            height: 15px;
+            background: #ffff00; /* черный цвет */
+            border-radius: 15px 15px 15px 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Контейнер для конфетти у верхнего края (коричневого конца) */
+        .confetti-container {
+            position: absolute;
+            top: -80px; /* У коричневого конца */
+            left: -10px;
+            width: 120px;
+            height: 120px;
+            pointer-events: none;
+            overflow: visible;
+            transform: rotate(20deg); /* Компенсация наклона */
+        }
+
+        .confetti {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            will-change: transform, opacity;
+        }
+
+        /* Конфетти остаются без изменений */
+        .confetti {
+            --size: 10px;
+            width: var(--size);
+            height: var(--size);
+        }
+
+        .confetti:nth-child(5n+1) { width: var(--size); height: var(--size); border-radius: 50%; }
+        .confetti:nth-child(5n+2) { width: calc(var(--size) / 2); height: calc(var(--size) * 3); border-radius: 2px; }
+        .confetti:nth-child(5n+3) { width: var(--size); height: var(--size); border-radius: 1px; }
+        .confetti:nth-child(5n+4) { width: var(--size); height: var(--size); clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+        .confetti:nth-child(5n+5) { width: 0; height: 0; border-left: calc(var(--size)/2) solid transparent; border-right: calc(var(--size)/2) solid transparent; border-bottom: var(--size) solid; background: none; }
+
+        .confetti:nth-child(7n+1) { background: linear-gradient(#ff0000, #ff4500); color: #ff4500; }
+        .confetti:nth-child(7n+2) { background: linear-gradient(#00ff00, #32cd32); color: #32cd32; }
+        .confetti:nth-child(7n+3) { background: linear-gradient(#0000ff, #4169e1); color: #4169e1; }
+        .confetti:nth-child(7n+4) { background: linear-gradient(#ffff00, #ffd700); color: #ffd700; }
+        .confetti:nth-child(7n+5) { background: linear-gradient(#ff00ff, #ff69b4); color: #ff69b4; }
+        .confetti:nth-child(7n+6) { background: linear-gradient(#00ffff, #20b2aa); color: #20b2aa; }
+        .confetti:nth-child(7n+7) { background: linear-gradient(#ffa500, #ff8c00); color: #ff8c00; }
+
+        .popper:hover .confetti,
+        .popper:active .confetti {
+            opacity: 1;
+            animation: confetti-explode 4.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes confetti-explode {
+            0% {
+                transform: translate(-50%, 0) scale(0.5) rotate(0deg);
+                opacity: 0;
+            }
+            15% {
+                transform: translate(-50%, 0) scale(1) rotate(var(--rot-start));
+                opacity: 1;
+            }
+            50% {
+                transform: translate(calc(-50% + var(--dx-peak)), var(--dy-peak)) rotate(var(--rot-peak));
+            }
+            100% {
+                transform: translate(calc(-50% + var(--dx-end)), var(--dy-end)) rotate(var(--rot-end));
+                opacity: 0;
+            }
+        }
+
+        .confetti:nth-child(1) { --dx-peak: -100px; --dy-peak: -300px; --dx-end: -150px; --dy-end: 500px; --rot-start: 0deg; --rot-peak: 360deg; --rot-end: 720deg; animation-delay: 0s; }
+        .confetti:nth-child(2) { --dx-peak: -120px; --dy-peak: -320px; --dx-end: -200px; --dy-end: 550px; --rot-start: -30deg; --rot-peak: -720deg; --rot-end: -1080deg; animation-delay: 0.05s; }
+        .confetti:nth-child(3) { --dx-peak: -140px; --dy-peak: -280px; --dx-end: -220px; --dy-end: 480px; --rot-start: 45deg; --rot-peak: 540deg; --rot-end: 900deg; animation-delay: 0.1s; }
+        .confetti:nth-child(4) { --dx-peak: -160px; --dy-peak: -350px; --dx-end: -250px; --dy-end: 600px; --rot-start: -45deg; --rot-peak: 360deg; --rot-end: 720deg; animation-delay: 0.15s; }
+        .confetti:nth-child(5) { --dx-peak: -180px; --dy-peak: -310px; --dx-end: -280px; --dy-end: 520px; --rot-start: 60deg; --rot-peak: -540deg; --rot-end: -900deg; animation-delay: 0.2s; }
+        .confetti:nth-child(6) { --dx-peak: -200px; --dy-peak: -330px; --dx-end: -300px; --dy-end: 580px; --rot-start: -60deg; --rot-peak: 720deg; --rot-end: 1080deg; animation-delay: 0.25s; }
+        .confetti:nth-child(7) { --dx-peak: -220px; --dy-peak: -290px; --dx-end: -320px; --dy-end: 500px; --rot-start: 75deg; --rot-peak: 360deg; --rot-end: 720deg; animation-delay: 0.3s; }
+        .confetti:nth-child(8) { --dx-peak: -240px; --dy-peak: -360px; --dx-end: -350px; --dy-end: 620px; --rot-start: -75deg; --rot-peak: -720deg; --rot-end: -1080deg; animation-delay: 0.35s; }
+        .confetti:nth-child(9) { --dx-peak: -260px; --dy-peak: -320px; --dx-end: -380px; --dy-end: 550px; --rot-start: 90deg; --rot-peak: 540deg; --rot-end: 900deg; animation-delay: 0.4s; }
+        .confetti:nth-child(10) { --dx-peak: -280px; --dy-peak: -300px; --dx-end: -400px; --dy-end: 480px; --rot-start: -90deg; --rot-peak: -360deg; --rot-end: -720deg; animation-delay: 0.05s; }
+        .confetti:nth-child(11) { --dx-peak: -300px; --dy-peak: -340px; --dx-end: -420px; --dy-end: 520px; --rot-start: 105deg; --rot-peak: 720deg; --rot-end: 1080deg; animation-delay: 0.1s; }
+        .confetti:nth-child(12) { --dx-peak: -320px; --dy-peak: -360px; --dx-end: -450px; --dy-end: 600px; --rot-start: -105deg; --rot-peak: -540deg; --rot-end: -900deg; animation-delay: 0.15s; }
+        .confetti:nth-child(13) { --dx-peak: -340px; --dy-peak: -290px; --dx-end: -480px; --dy-end: 550px; --rot-start: 120deg; --rot-peak: 360deg; --rot-end: 720deg; animation-delay: 0.2s; }
+        .confetti:nth-child(14) { --dx-peak: -360px; --dy-peak: -380px; --dx-end: -500px; --dy-end: 620px; --rot-start: -120deg; --rot-peak: 540deg; --rot-end: 900deg; animation-delay: 0.25s; }
+        .confetti:nth-child(15) { --dx-peak: -380px; --dy-peak: -310px; --dx-end: -520px; --dy-end: 480px; --rot-start: 135deg; --rot-peak: -720deg; --rot-end: -1080deg; animation-delay: 0.3s; }
+        .confetti:nth-child(16) { --dx-peak: -400px; --dy-peak: -350px; --dx-end: -550px; --dy-end: 580px; --rot-start: -135deg; --rot-peak: 720deg; --rot-end: 1080deg; animation-delay: 0.35s; }
+        .confetti:nth-child(17) { --dx-peak: -420px; --dy-peak: -330px; --dx-end: -580px; --dy-end: 500px; --rot-start: 150deg; --rot-peak: -360deg; --rot-end: -720deg; animation-delay: 0.4s; }
+        .confetti:nth-child(18) { --dx-peak: -440px; --dy-peak: -370px; --dx-end: -600px; --dy-end: 650px; --rot-start: -150deg; --rot-peak: 540deg; --rot-end: 900deg; animation-delay: 0.05s; }
+        .confetti:nth-child(19) { --dx-peak: -460px; --dy-peak: -290px; --dx-end: -620px; --dy-end: 550px; --rot-start: 165deg; --rot-peak: 720deg; --rot-end: 1080deg; animation-delay: 0.1s; }
+        .confetti:nth-child(20) { --dx-peak: -480px; --dy-peak: -380px; --dx-end: -650px; --dy-end: 600px; --rot-start: -165deg; --rot-peak: -720deg; --rot-end: -1080deg; animation-delay: 0.15s; }
+        .confetti:nth-child(21) { --dx-peak: -500px; --dy-peak: -320px; --dx-end: -680px; --dy-end: 520px; --rot-start: 180deg; --rot-peak: 360deg; --rot-end: 720deg; animation-delay: 0.2s; }
+        .confetti:nth-child(22) { --dx-peak: -520px; --dy-peak: -360px; --dx-end: -700px; --dy-end: 580px; --rot-start: -180deg; --rot-peak: -540deg; --rot-end: -900deg; animation-delay: 0.25s; }
+        .confetti:nth-child(23) { --dx-peak: -540px; --dy-peak: -340px; --dx-end: -720px; --dy-end: 500px; --rot-start: 195deg; --rot-peak: 720deg; --rot-end: 1080deg; animation-delay: 0.3s; }
+        .confetti:nth-child(24) { --dx-peak: -560px; --dy-peak: -370px; --dx-end: -750px; --dy-end: 650px; --rot-start: -195deg; --rot-peak: -360deg; --rot-end: -720deg; animation-delay: 0.35s; }
+        .confetti:nth-child(25) { --dx-peak: -580px; --dy-peak: -300px; --dx-end: -780px; --dy-end: 550px; --rot-start: 210deg; --rot-peak: 540deg; --rot-end: 900deg; animation-delay: 0.4s; }
+        .confetti:nth-child(26) { --dx-peak: -600px; --dy-peak: -380px; --dx-end: -800px; --dy-end: 600px; --rot-start: -210deg; --rot-peak: 720deg; --rot-end: 1080deg; animation-delay: 0.05s; }
+        .confetti:nth-child(27) { --dx-peak: -620px; --dy-peak: -320px; --dx-end: -820px; --dy-end: 520px; --rot-start: 225deg; --rot-peak: -720deg; --rot-end: -1080deg; animation-delay: 0.1s; }
+        .confetti:nth-child(28) { --dx-peak: -640px; --dy-peak: -360px; --dx-end: -850px; --dy-end: 580px; --rot-start: -225deg; --rot-peak: 360deg; --rot-end: 720deg; animation-delay: 0.15s; }
+        .confetti:nth-child(29) { --dx-peak: -660px; --dy-peak: -340px; --dx-end: -880px; --dy-end: 500px; --rot-start: 240deg; --rot-peak: 540deg; --rot-end: 900deg; animation-delay: 0.2s; }
+        .confetti:nth-child(30) { --dx-peak: -680px; --dy-peak: -370px; --dx-end: -900px; --dy-end: 650px; --rot-start: -240deg; --rot-peak: -720deg; --rot-end: -1080deg; animation-delay: 0.25s; }
+        .confetti:nth-child(31) { --dx-peak: -700px; --dy-peak: -300px; --dx-end: -920px; --dy-end: 550px; --rot-start: 255deg; --rot-peak: 720deg; --rot-end: 1080deg; animation-delay: 0.3s; }
+        .confetti:nth-child(32) { --dx-peak: -720px; --dy-peak: -380px; --dx-end: -950px; --dy-end: 600px; --rot-start: -255deg; --rot-peak: -360deg; --rot-end: -720deg; animation-delay: 0.35s; }
+        .confetti:nth-child(33) { --dx-peak: -740px; --dy-peak: -320px; --dx-end: -980px; --dy-end: 520px; --rot-start: 270deg; --rot-peak: 540deg; --rot-end: 900deg; animation-delay: 0.4s; }
+        .confetti:nth-child(34) { --dx-peak: -760px; --dy-peak: -360px; --dx-end: -1000px; --dy-end: 580px; --rot-start: -270deg; --rot-peak: 720deg; --rot-end: 1080deg; animation-delay: 0.05s; }
+        .confetti:nth-child(35) { --dx-peak: -780px; --dy-peak: -340px; --dx-end: -1020px; --dy-end: 500px; --rot-start: 285deg; --rot-peak: -720deg; --rot-end: -1080deg; animation-delay: 0.1s; }
+        .confetti:nth-child(36) { --dx-peak: -800px; --dy-peak: -370px; --dx-end: -1050px; --dy-end: 650px; --rot-start: -285deg; --rot-peak: 360deg; --rot-end: 720deg; animation-delay: 0.15s; }
+        .confetti:nth-child(37) { --dx-peak: -820px; --dy-peak: -300px; --dx-end: -1080px; --dy-end: 550px; --rot-start: 300deg; --rot-peak: 540deg; --rot-end: 900deg; animation-delay: 0.2s; }
+        .confetti:nth-child(38) { --dx-peak: -840px; --dy-peak: -380px; --dx-end: -1100px; --dy-end: 600px; --rot-start: -300deg; --rot-peak: -720deg; --rot-end: -1080deg; animation-delay: 0.25s; }
+        .confetti:nth-child(39) { --dx-peak: -860px; --dy-peak: -320px; --dx-end: -1120px; --dy-end: 520px; --rot-start: 315deg; --rot-peak: 720deg; --rot-end: 1080deg; animation-delay: 0.3s; }
+        .confetti:nth-child(40) { --dx-peak: -880px; --dy-peak: -360px; --dx-end: -1150px; --dy-end: 580px; --rot-start: -315deg; --rot-peak: -360deg; --rot-end: -720deg; animation-delay: 0.35s; }
+        .confetti:nth-child(41) { --dx-peak: -900px; --dy-peak: -340px; --dx-end: -1180px; --dy-end: 500px; --rot-start: 330deg; --rot-peak: 540deg; --rot-end: 900deg; animation-delay: 0.4s; }
+        .confetti:nth-child(42) { --dx-peak: -920px; --dy-peak: -370px; --dx-end: -1200px; --dy-end: 650px; --rot-start: -330deg; --rot-peak: 720deg; --rot-end: 1080deg; animation-delay: 0.05s; }
+        .confetti:nth-child(43) { --dx-peak: -940px; --dy-peak: -300px; --dx-end: -1220px; --dy-end: 550px; --rot-start: 345deg; --rot-peak: -720deg; --rot-end: -1080deg; animation-delay: 0.1s; }
+        .confetti:nth-child(44) { --dx-peak: -960px; --dy-peak: -380px; --dx-end: -1250px; --dy-end: 600px; --rot-start: -345deg; --rot-peak: 360deg; --rot-end: 720deg; animation-delay: 0.15s; }
+        .confetti:nth-child(45) { --dx-peak: -980px; --dy-peak: -320px; --dx-end: -1280px; --dy-end: 520px; --rot-start: 360deg; --rot-peak: 540deg; --rot-end: 900deg; animation-delay: 0.2s; }
+        .confetti:nth-child(46) { --dx-peak: -1000px; --dy-peak: -360px; --dx-end: -1300px; --dy-end: 580px; --rot-start: -360deg; --rot-peak: -720deg; --rot-end: -1080deg; animation-delay: 0.25s; }
+        .confetti:nth-child(47) { --dx-peak: -1020px; --dy-peak: -340px; --dx-end: -1320px; --dy-end: 500px; --rot-start: 375deg; --rot-peak: 720deg; --rot-end: 1080deg; animation-delay: 0.3s; }
+        .confetti:nth-child(48) { --dx-peak: -1040px; --dy-peak: -370px; --dx-end: -1350px; --dy-end: 650px; --rot-start: -375deg; --rot-peak: -360deg; --rot-end: -720deg; animation-delay: 0.35s; }
+        .confetti:nth-child(49) { --dx-peak: -1060px; --dy-peak: -300px; --dx-end: -1380px; --dy-end: 550px; --rot-start: 390deg; --rot-peak: 540deg; --rot-end: 900deg; animation-delay: 0.4s; }
+        .confetti:nth-child(50) { --dx-peak: -1080px; --dy-peak: -380px; --dx-end: -1400px; --dy-end: 600px; --rot-start: -390deg; --rot-peak: 720deg; --rot-end: 1080deg; animation-delay: 0.05s; }
+
+        /* Разные наклоны для хлопушек */
+        .popper:nth-child(1) { transform: rotate(-10deg); }
+        .popper:nth-child(2) { transform: rotate(-20deg); }
+        .popper:nth-child(3) { transform: rotate(-30deg); }
+
+    </style>
+</head>
+<body>
+    <div class="scene">
+        <div class="popper">
+            <div class="confetti-container">
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+            </div>
+        </div>
+        <div class="popper">
+            <div class="confetti-container">
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+            </div>
+        </div>
+        <div class="popper">
+            <div class="confetti-container">
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+                <span class="confetti"></span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

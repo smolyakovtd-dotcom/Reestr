@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 declare(strict_types=1);
 
 use PHPMailer\PHPMailer\PHPMailer;
@@ -6,7 +6,7 @@ use PHPMailer\PHPMailer\Exception;
 
 /* =======================
    ERROR REPORTING
-   (РЅР° РїСЂРѕРґРµ Р»СѓС‡С€Рµ РІС‹РєР»СЋС‡РёС‚СЊ)
+   (на проде лучше выключить)
 ======================= */
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
@@ -26,9 +26,9 @@ const SMTP_PORT = 465; // SSL
 const SMTP_USER = 'abyss@reestr.tw1.ru';
 const SMTP_PASS = 'r26f0614U';
 const SMTP_FROM = SMTP_USER;
-const SMTP_FROM_NAME = 'Р РµРµСЃС‚СЂ РґРѕРєСѓРјРµРЅС‚РѕРІ';
+const SMTP_FROM_NAME = 'Реестр документов';
 
-// РџР°СЂРѕР»Рё РІС…РѕРґР° РїРѕ СЂРѕР»СЏРј (Р»РѕРєР°Р»СЊРЅР°СЏ СЃРµС‚СЊ)
+// Пароли входа по ролям (локальная сеть)
 const AUTH_ROLE_PASSWORDS = [
     'warehouse' => 'summer', // Кладовщик: полный доступ
     'viewer'    => 'winter', // Просмотр: только чтение
@@ -63,17 +63,17 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 } catch (PDOException $e) {
-    die("РћС€РёР±РєР° РїРѕРґРєР»СЋС‡РµРЅРёСЏ Рє MySQL: " . htmlspecialchars($e->getMessage()));
+    die("Ошибка подключения к MySQL: " . htmlspecialchars($e->getMessage()));
 }
 
 /* =======================
    GLOBALS
 ======================= */
 $types = [
-    'incoming'     => 'Р’С…РѕРґСЏС‰РёРµ',
-    'outgoing'     => 'РСЃС…РѕРґСЏС‰РёРµ',
-    'incoming_tk'  => 'Р’С…РѕРґСЏС‰РёРµ РўРљ',
-    'outgoing_tk'  => 'РСЃС…РѕРґСЏС‰РёРµ РўРљ',
+    'incoming'     => 'Входящие',
+    'outgoing'     => 'Исходящие',
+    'incoming_tk'  => 'Входящие ТК',
+    'outgoing_tk'  => 'Исходящие ТК',
 ];
 
 /* =======================
@@ -107,7 +107,7 @@ function ymd_today(): string {
    PHPMailer LOADER (no composer)
 ======================= */
 function load_phpmailer(): void {
-    // РџРѕРґРєР»СЋС‡Р°РµРј PHPMailer (Р±РµР· composer)
+    // Подключаем PHPMailer (без composer)
     $base = __DIR__ . '/assets/phpmailer/src/';
     require_once $base . 'Exception.php';
     require_once $base . 'PHPMailer.php';
@@ -140,8 +140,8 @@ function smtp_send_text_mail(string $toEmail, string $subject, string $text): ar
         $mail->Body    = $text;
 
         $mail->send();
-        return ['success' => true, 'message' => 'РџРёСЃСЊРјРѕ РѕС‚РїСЂР°РІР»РµРЅРѕ!'];
+        return ['success' => true, 'message' => 'Письмо отправлено!'];
     } catch (Throwable $e) {
-        return ['success' => false, 'message' => 'РћС€РёР±РєР° РѕС‚РїСЂР°РІРєРё: ' . $e->getMessage()];
+        return ['success' => false, 'message' => 'Ошибка отправки: ' . $e->getMessage()];
     }
 }

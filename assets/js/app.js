@@ -1,4 +1,4 @@
-/* assets/js/app.js */
+﻿/* assets/js/app.js */
 (function () {
   const CFG = window.__APP_CFG__ || {};
   const CSRF = CFG.csrf || "";
@@ -73,7 +73,7 @@
   }
 
   /* =========================
-     FREEZE: Р В РЎвЂўР В РўвЂР В РЎвЂР В Р вЂ¦Р В РЎвЂўР РЋРІР‚РЋР В Р вЂ¦Р РЋРІР‚в„–Р В Р’Вµ Р В РЎвЂ”Р В РЎвЂўР В Р’В»Р РЋР РЏ + Р В РЎСџР В РЎвЂ™Р В Р’В Р В РЎвЂ™ contractor/inn
+     FREEZE: одиночные поля + ПАРА contractor/inn
   ========================= */
   const frozen = {};         // id -> boolean
   let pairFrozen = false;    // contractor+inn frozen
@@ -269,12 +269,12 @@
       const res = await fetch(location.href, { method: "POST", body: fd });
       const data = await res.json();
       if (!data || !data.success) {
-        alert((data && data.message) ? data.message : "Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В° Р В РўвЂР В РЎвЂўР В Р’В±Р В Р’В°Р В Р вЂ Р В Р’В»Р В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР РЏ");
+        alert((data && data.message) ? data.message : "Ошибка добавления");
         return;
       }
       location.reload();
     } catch (err) {
-      alert("Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В° Р В Р’В·Р В Р’В°Р В РЎвЂ”Р РЋР вЂљР В РЎвЂўР РЋР С“Р В Р’В°: " + (err?.message || err));
+      alert("Ошибка запроса: " + (err?.message || err));
     }
   };
 
@@ -282,14 +282,14 @@
      DELETE DOC
   ========================= */
   window.deleteDoc = function (id) {
-    if (!confirm("Р В Р в‚¬Р В РўвЂР В Р’В°Р В Р’В»Р В РЎвЂР РЋРІР‚С™Р РЋР Р‰ Р В Р’В·Р В Р’В°Р В РЎвЂ”Р В РЎвЂР РЋР С“Р РЋР Р‰?")) return;
+    if (!confirm("Удалить запись?")) return;
     const fd = new FormData();
     fd.set("csrf_token", CSRF);
     fd.set("action", "delete_document");
     fd.set("id", String(id));
     fetch(location.href, { method: "POST", body: fd })
       .then(() => location.reload())
-      .catch((e) => alert("Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В° Р РЋРЎвЂњР В РўвЂР В Р’В°Р В Р’В»Р В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР РЏ: " + (e?.message || e)));
+      .catch((e) => alert("Ошибка удаления: " + (e?.message || e)));
   };
 
   /* =========================
@@ -449,7 +449,7 @@
     tds[3].appendChild(makeInput(docNum, "edit-input"));
 
     tds[4].innerHTML = "";
-    const dd = makeInput(docDate, "edit-input date-edit", "Р В РІР‚СњР В РІР‚Сњ.Р В РЎС™Р В РЎС™.Р В РІР‚СљР В РІР‚Сљ");
+    const dd = makeInput(docDate, "edit-input date-edit", "ДД.ММ.ГГ");
     tds[4].appendChild(dd);
     attachDateMask(dd);
 
@@ -504,12 +504,12 @@
       const res = await fetch(location.href, { method: "POST", body: fd });
       const data = await res.json();
       if (!data || !data.success) {
-        alert((data && data.message) ? data.message : "Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В° Р РЋР С“Р В РЎвЂўР РЋРІР‚В¦Р РЋР вЂљР В Р’В°Р В Р вЂ¦Р В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР РЏ");
+        alert((data && data.message) ? data.message : "Ошибка сохранения");
         return;
       }
       location.reload();
     } catch (err) {
-      alert("Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В° Р В Р’В·Р В Р’В°Р В РЎвЂ”Р РЋР вЂљР В РЎвЂўР РЋР С“Р В Р’В°: " + (err?.message || err));
+      alert("Ошибка запроса: " + (err?.message || err));
     }
   };
 
@@ -526,7 +526,7 @@
   }
 
   /* =========================
-     COMMENTS autosave (Р В Р вЂ Р РЋР С“Р В Р’ВµР В РЎвЂ“Р В РўвЂР В Р’В°)
+     COMMENTS autosave (всегда)
   ========================= */
   function setStatus(textarea, text) {
     const box = textarea.parentElement?.querySelector(".comment-status");
@@ -556,13 +556,13 @@
       const data = await res.json();
 
       if (!data || !data.success) {
-        setStatus(textarea, "Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В°");
+        setStatus(textarea, "Ошибка");
         return;
       }
       if (typeof data.value === "string" && data.value !== textarea.value) textarea.value = data.value;
-      setStatus(textarea, "Р В Р Р‹Р В РЎвЂўР РЋРІР‚В¦Р РЋР вЂљР В Р’В°Р В Р вЂ¦Р В Р’ВµР В Р вЂ¦Р В РЎвЂў");
+      setStatus(textarea, "Сохранено");
     } catch (_) {
-      setStatus(textarea, "Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В°");
+      setStatus(textarea, "Ошибка");
     }
   }
 
@@ -629,7 +629,7 @@
 
   window.printToday = function () {
     const d = CFG.currentDate || "";
-    if (!d) return alert("Р В РЎСљР В Р’Вµ Р РЋРЎвЂњР В РўвЂР В Р’В°Р В Р’В»Р В РЎвЂўР РЋР С“Р РЋР Р‰ Р В РЎвЂўР В РЎвЂ”Р РЋР вЂљР В Р’ВµР В РўвЂР В Р’ВµР В Р’В»Р В РЎвЂР РЋРІР‚С™Р РЋР Р‰ Р В РўвЂР В Р’В°Р РЋРІР‚С™Р РЋРЎвЂњ");
+    if (!d) return alert("Не удалось определить дату");
     postPrint(d, d);
   };
   window.printRange = function () {
@@ -637,13 +637,13 @@
     const toRaw = (qs("#print_to_date")?.value || "").trim();
     const from = convertInputDateToYMD(fromRaw);
     const to = convertInputDateToYMD(toRaw);
-    if (!from || !to) return alert("Р В РЎСљР В Р’ВµР В Р вЂ Р В Р’ВµР РЋР вЂљР В Р вЂ¦Р РЋРІР‚в„–Р В РІвЂћвЂ“ Р РЋРІР‚С›Р В РЎвЂўР РЋР вЂљР В РЎВР В Р’В°Р РЋРІР‚С™ Р В РўвЂР В Р’В°Р РЋРІР‚С™ (Р В РІР‚СњР В РІР‚Сњ.Р В РЎС™Р В РЎС™.Р В РІР‚СљР В РІР‚Сљ Р В РЎвЂР В Р’В»Р В РЎвЂ Р В РІР‚СњР В РІР‚Сњ.Р В РЎС™Р В РЎС™.Р В РІР‚СљР В РІР‚СљР В РІР‚СљР В РІР‚Сљ)");
+    if (!from || !to) return alert("Неверный формат дат (ДД.ММ.ГГ или ДД.ММ.ГГГГ)");
     postPrint(from, to);
   };
   window.openDate = function () {
     const v = (qs("#select_date")?.value || "").trim();
     const ymd = convertInputDateToYMD(v);
-    if (!ymd) return alert("Р В РЎСљР В Р’ВµР В Р вЂ Р В Р’ВµР РЋР вЂљР В Р вЂ¦Р РЋРІР‚в„–Р В РІвЂћвЂ“ Р РЋРІР‚С›Р В РЎвЂўР РЋР вЂљР В РЎВР В Р’В°Р РЋРІР‚С™ Р В РўвЂР В Р’В°Р РЋРІР‚С™Р РЋРІР‚в„– (Р В РІР‚СњР В РІР‚Сњ.Р В РЎС™Р В РЎС™.Р В РІР‚СљР В РІР‚Сљ Р В РЎвЂР В Р’В»Р В РЎвЂ Р В РІР‚СњР В РІР‚Сњ.Р В РЎС™Р В РЎС™.Р В РІР‚СљР В РІР‚СљР В РІР‚СљР В РІР‚Сљ)");
+    if (!ymd) return alert("Неверный формат даты (ДД.ММ.ГГ или ДД.ММ.ГГГГ)");
     location.href = `?date=${encodeURIComponent(ymd)}`;
   };
   window.performSearch = function () {
@@ -696,8 +696,8 @@
   };
   window.sendSelectedReestrEmail = async function () {
     const email = (qs("#email_address")?.value || "").trim();
-    if (!selectedReestrNumber) return alert("Р В РЎСљР В Р’Вµ Р В Р вЂ Р РЋРІР‚в„–Р В Р’В±Р РЋР вЂљР В Р’В°Р В Р вЂ¦ Р РЋР вЂљР В Р’ВµР В Р’ВµР РЋР С“Р РЋРІР‚С™Р РЋР вЂљ");
-    if (!email) return alert("Р В Р в‚¬Р В РЎвЂќР В Р’В°Р В Р’В¶Р В РЎвЂР РЋРІР‚С™Р В Р’Вµ e-mail");
+    if (!selectedReestrNumber) return alert("Не выбран реестр");
+    if (!email) return alert("РЈРєР°Р¶РёС‚Рµ e-mail");
 
     const fd = new FormData();
     fd.set("csrf_token", CSRF);
@@ -709,18 +709,18 @@
       const res = await fetch(location.href, { method: "POST", body: fd });
       const data = await res.json();
       if (!data || !data.success) {
-        alert((data && data.message) ? data.message : "Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В° Р В РЎвЂўР РЋРІР‚С™Р В РЎвЂ”Р РЋР вЂљР В Р’В°Р В Р вЂ Р В РЎвЂќР В РЎвЂ");
+        alert((data && data.message) ? data.message : "Ошибка отправки");
         return;
       }
-      alert("Р В РЎСџР В РЎвЂР РЋР С“Р РЋР Р‰Р В РЎВР В РЎвЂў Р В РЎвЂўР РЋРІР‚С™Р В РЎвЂ”Р РЋР вЂљР В Р’В°Р В Р вЂ Р В Р’В»Р В Р’ВµР В Р вЂ¦Р В РЎвЂў!");
+      alert("Письмо отправлено!");
       closeModal("email");
     } catch (err) {
-      alert("Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В° Р В Р’В·Р В Р’В°Р В РЎвЂ”Р РЋР вЂљР В РЎвЂўР РЋР С“Р В Р’В°: " + (err?.message || err));
+      alert("Ошибка запроса: " + (err?.message || err));
     }
   };
 
   window.backup = function () {
-    alert("Р В РІР‚СњР В Р’В»Р РЋР РЏ Р В Р’В±Р РЋР РЉР В РЎвЂќР В Р’В°Р В РЎвЂ”Р В Р’В° Р В РЎвЂР РЋР С“Р В РЎвЂ”Р В РЎвЂўР В Р’В»Р РЋР Р‰Р В Р’В·Р РЋРЎвЂњР В РІвЂћвЂ“Р РЋРІР‚С™Р В Р’Вµ phpMyAdmin Р В РЎвЂР В Р’В»Р В РЎвЂ mysqldump");
+    alert("Для бэкапа используйте phpMyAdmin или mysqldump");
   };
 
   window.startRowEdit = function (btn) {
@@ -760,7 +760,7 @@
     bindPairInputs(qs("#contractor"), qs("#inn"));
     initComments();
 
-    // Р Р†РЎС™РІР‚В¦ FIX: Р В РЎвЂ”Р В РЎвЂўР РЋР С“Р В Р’В»Р В Р’Вµ Р В РЎвЂ”Р В РЎвЂўР В РЎвЂР РЋР С“Р В РЎвЂќР В Р’В° Р В РЎВР В РЎвЂўР В РўвЂР В Р’В°Р В Р’В»Р В РЎвЂќР В Р’В° Р РЋР С“Р В Р’В°Р В РЎВР В Р’В° Р В РЎвЂўР РЋРІР‚С™Р В РЎвЂќР РЋР вЂљР РЋРІР‚в„–Р В Р вЂ Р В Р’В°Р В Р’ВµР РЋРІР‚С™Р РЋР С“Р РЋР РЏ
+    // ✅ FIX: после поиска модалка сама открывается
     if (CFG.searchPerformed) {
       showModal("search");
     }

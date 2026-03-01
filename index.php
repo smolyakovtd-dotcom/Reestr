@@ -241,21 +241,26 @@ function deleteFromRegistry(PDO $db, int $id): bool {
 /* =======================
    SCANS STORAGE
 ======================= */
-function ensureScansTable(PDO $db): void {
-    $db->exec("
-        CREATE TABLE IF NOT EXISTS registry_scans (
-            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            registry_id INT NOT NULL,
-            original_name VARCHAR(255) NOT NULL,
-            stored_name VARCHAR(255) NOT NULL,
-            relative_path VARCHAR(500) NOT NULL,
-            mime_type VARCHAR(120) NOT NULL,
-            file_size BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            uploaded_by_role VARCHAR(32) NOT NULL DEFAULT '',
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_registry_id (registry_id)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    ");
+function ensureScansTable(PDO $db): bool {
+    try {
+        $db->exec("
+            CREATE TABLE IF NOT EXISTS registry_scans (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                registry_id INT NOT NULL,
+                original_name VARCHAR(255) NOT NULL,
+                stored_name VARCHAR(255) NOT NULL,
+                relative_path VARCHAR(500) NOT NULL,
+                mime_type VARCHAR(120) NOT NULL,
+                file_size BIGINT UNSIGNED NOT NULL DEFAULT 0,
+                uploaded_by_role VARCHAR(32) NOT NULL DEFAULT '',
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_registry_id (registry_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        ");
+        return true;
+    } catch (Throwable $e) {
+        return false;
+    }
 }
 
 function scansAllowedExts(): array {
@@ -514,7 +519,10 @@ $canManageRegistry = ($currentRole === 'warehouse');
 $canUploadScans = ($currentRole === 'scanner');
 $currentRoleTitle = $roleTitles[$currentRole] ?? '';
 
-ensureScansTable($db);
+$scansReady = ensureScansTable($db);
+if (!$scansReady) {
+    $canUploadScans = false;
+}
 
 if (isset($_GET['logout'])) {
     session_regenerate_id(true);
@@ -525,6 +533,7 @@ if (isset($_GET['logout'])) {
 
 if (isset($_GET['download_scan'])) {
     if (!$isAuthenticated) { http_response_code(403); die('Forbidden'); }
+    if (!$scansReady) { http_response_code(404); die('Not found'); }
 
 
     $scanId = (int)$_GET['download_scan'];
@@ -746,6 +755,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'upload_scan') {
         require_csrf();
         header('Content-Type: application/json; charset=utf-8');
+        if (!$scansReady) {
+            http_response_code(503);
+            echo json_encode(['success' => false, 'message' => 'Scans storage is unavailable'], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
         if (!$canUploadScans) {
             http_response_code(403);
             echo json_encode(['success' => false, 'message' => 'Недостаточно прав'], JSON_UNESCAPED_UNICODE);
@@ -770,6 +784,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'delete_scan') {
         require_csrf();
         header('Content-Type: application/json; charset=utf-8');
+        if (!$scansReady) {
+            http_response_code(503);
+            echo json_encode(['success' => false, 'message' => 'Scans storage is unavailable'], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
         if (!$canUploadScans) {
             http_response_code(403);
             echo json_encode(['success' => false, 'message' => 'Недостаточно прав'], JSON_UNESCAPED_UNICODE);
@@ -1048,7 +1067,9 @@ $registry = getRegistryForDate($db, $currentDate);
 $contractors = getContractors($db);
 $docTypes = getDocumentTypes($db);
 $reestrsList = getReestrsList($db);
-$scanMap = getScansForRegistryIds($db, array_map(fn($r) => (int)$r['id'], $registry));
+$scanMap = $scansReady
+    ? getScansForRegistryIds($db, array_map(fn($r) => (int)$r['id'], $registry))
+    : [];
 
 $dayInfo = getDayRegistryInfo($db, $currentDate);
 $isDayFrozenFlag = isDayFrozen($db, $currentDate);

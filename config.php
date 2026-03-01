@@ -6,14 +6,14 @@ use PHPMailer\PHPMailer\Exception;
 
 /* =======================
    ERROR REPORTING
-   (на проде лучше выключить)
+   (РЅР° РїСЂРѕРґРµ Р»СѓС‡С€Рµ РІС‹РєР»СЋС‡РёС‚СЊ)
 ======================= */
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
 /* =======================
-   CONFIG (DB + SMTP + ADMIN)
+   CONFIG (DB + SMTP + AUTH)
 ======================= */
 const DB_HOST = 'localhost';
 const DB_NAME = 'cf449082_main';
@@ -26,10 +26,19 @@ const SMTP_PORT = 465; // SSL
 const SMTP_USER = 'abyss@reestr.tw1.ru';
 const SMTP_PASS = 'r26f0614U';
 const SMTP_FROM = SMTP_USER;
-const SMTP_FROM_NAME = 'Реестр документов';
+const SMTP_FROM_NAME = 'Р РµРµСЃС‚СЂ РґРѕРєСѓРјРµРЅС‚РѕРІ';
 
-// Вставь сюда свой password_hash(...)
-const ADMIN_PASSWORD_HASH = '$2y$10$yoskU0S5OphDqn4qiGDYquDLXOCTPM79iCEl.Qzj46jTpcNj0x0a2';
+// РџР°СЂРѕР»Рё РІС…РѕРґР° РїРѕ СЂРѕР»СЏРј (Р»РѕРєР°Р»СЊРЅР°СЏ СЃРµС‚СЊ)
+const AUTH_ROLE_PASSWORDS = [
+    'warehouse' => 'summer', // Кладовщик: полный доступ
+    'viewer'    => 'winter', // Просмотр: только чтение
+    'scanner'   => 'spring', // Внесение сканов: чтение + upload/delete сканов
+];
+
+// Корневая директория сканов (можно UNC: \\fileserver\scans\reestr)
+// Подробная инструкция: SCANS_SETUP.md
+const SCANS_STORAGE_PATH = __DIR__ . '/storage/scans';
+const SCANS_MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 
 /* =======================
    SESSION
@@ -54,17 +63,17 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 } catch (PDOException $e) {
-    die("Ошибка подключения к MySQL: " . htmlspecialchars($e->getMessage()));
+    die("РћС€РёР±РєР° РїРѕРґРєР»СЋС‡РµРЅРёСЏ Рє MySQL: " . htmlspecialchars($e->getMessage()));
 }
 
 /* =======================
    GLOBALS
 ======================= */
 $types = [
-    'incoming'     => 'Входящие',
-    'outgoing'     => 'Исходящие',
-    'incoming_tk'  => 'Входящие ТК',
-    'outgoing_tk'  => 'Исходящие ТК',
+    'incoming'     => 'Р’С…РѕРґСЏС‰РёРµ',
+    'outgoing'     => 'РСЃС…РѕРґСЏС‰РёРµ',
+    'incoming_tk'  => 'Р’С…РѕРґСЏС‰РёРµ РўРљ',
+    'outgoing_tk'  => 'РСЃС…РѕРґСЏС‰РёРµ РўРљ',
 ];
 
 /* =======================
@@ -98,7 +107,7 @@ function ymd_today(): string {
    PHPMailer LOADER (no composer)
 ======================= */
 function load_phpmailer(): void {
-    // Подключаем PHPMailer (без composer)
+    // РџРѕРґРєР»СЋС‡Р°РµРј PHPMailer (Р±РµР· composer)
     $base = __DIR__ . '/assets/phpmailer/src/';
     require_once $base . 'Exception.php';
     require_once $base . 'PHPMailer.php';
@@ -131,8 +140,8 @@ function smtp_send_text_mail(string $toEmail, string $subject, string $text): ar
         $mail->Body    = $text;
 
         $mail->send();
-        return ['success' => true, 'message' => 'Письмо отправлено!'];
+        return ['success' => true, 'message' => 'РџРёСЃСЊРјРѕ РѕС‚РїСЂР°РІР»РµРЅРѕ!'];
     } catch (Throwable $e) {
-        return ['success' => false, 'message' => 'Ошибка отправки: ' . $e->getMessage()];
+        return ['success' => false, 'message' => 'РћС€РёР±РєР° РѕС‚РїСЂР°РІРєРё: ' . $e->getMessage()];
     }
 }

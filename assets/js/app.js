@@ -73,7 +73,7 @@
   }
 
   /* =========================
-     FREEZE: одиночные поля + ПАРА contractor/inn
+     FREEZE: Р В РЎвЂўР В РўвЂР В РЎвЂР В Р вЂ¦Р В РЎвЂўР РЋРІР‚РЋР В Р вЂ¦Р РЋРІР‚в„–Р В Р’Вµ Р В РЎвЂ”Р В РЎвЂўР В Р’В»Р РЋР РЏ + Р В РЎСџР В РЎвЂ™Р В Р’В Р В РЎвЂ™ contractor/inn
   ========================= */
   const frozen = {};         // id -> boolean
   let pairFrozen = false;    // contractor+inn frozen
@@ -85,6 +85,12 @@
     if (isFrozen) inp.classList.add("frozen");
     else inp.classList.remove("frozen");
   }
+  function setInputReadOnly(id, isReadOnly) {
+    const inp = qs(`#${id}`);
+    if (!inp) return;
+    inp.readOnly = !!isReadOnly;
+    inp.setAttribute("aria-readonly", isReadOnly ? "true" : "false");
+  }
   function setFreezeBtnActive(btnId, active) {
     const btn = qs(`#${btnId}`);
     if (!btn) return;
@@ -95,6 +101,7 @@
   window.toggleFreeze = function (id) {
     frozen[id] = !frozen[id];
     setFrozenStyle(id, frozen[id]);
+    setInputReadOnly(id, frozen[id]);
     setFreezeBtnActive("freeze_" + id, frozen[id]);
 
     try {
@@ -106,7 +113,10 @@
   window.toggleFreezePair = function () {
     pairFrozen = !pairFrozen;
 
-    PAIR_IDS.forEach((id) => setFrozenStyle(id, pairFrozen));
+    PAIR_IDS.forEach((id) => {
+      setFrozenStyle(id, pairFrozen);
+      setInputReadOnly(id, pairFrozen);
+    });
     setFreezeBtnActive("freeze_pair", pairFrozen);
     setFreezeBtnActive("freeze_inn", pairFrozen);
 
@@ -132,6 +142,7 @@
         if (inp && val) inp.value = val;
       }
       setFrozenStyle(id, frozen[id]);
+      setInputReadOnly(id, frozen[id]);
       setFreezeBtnActive("freeze_" + id, frozen[id]);
     });
 
@@ -147,7 +158,10 @@
       if (c && pName) c.value = pName;
       if (i && pInn) i.value = pInn;
     }
-    PAIR_IDS.forEach((id) => setFrozenStyle(id, pairFrozen));
+    PAIR_IDS.forEach((id) => {
+      setFrozenStyle(id, pairFrozen);
+      setInputReadOnly(id, pairFrozen);
+    });
     setFreezeBtnActive("freeze_pair", pairFrozen);
     setFreezeBtnActive("freeze_inn", pairFrozen);
   }
@@ -176,7 +190,16 @@
       const name = contractorInput.value.trim();
       if (name === "") { innInput.value = ""; return; }
       const opt = findContractorOptionByName(name);
-      innInput.value = opt ? (opt.getAttribute("data-inn") || "") : "";
+      if (!opt) {
+        innInput.value = "";
+        return;
+      }
+      const expectedInn = opt.getAttribute("data-inn") || "";
+      if (innInput.value.replace(/\D/g, "") && innInput.value.replace(/\D/g, "") !== expectedInn) {
+        innInput.value = "";
+        return;
+      }
+      innInput.value = expectedInn;
     });
 
     innInput.addEventListener("input", () => {
@@ -187,7 +210,16 @@
 
       if (innDigits === "") { contractorInput.value = ""; return; }
       const opt = findContractorOptionByInn(innDigits);
-      contractorInput.value = opt ? opt.value : "";
+      if (!opt) {
+        contractorInput.value = "";
+        return;
+      }
+      const expectedName = opt.value || "";
+      if (contractorInput.value.trim() && contractorInput.value.trim() !== expectedName) {
+        contractorInput.value = "";
+        return;
+      }
+      contractorInput.value = expectedName;
     });
 
     function savePairToStorage() {
@@ -237,12 +269,12 @@
       const res = await fetch(location.href, { method: "POST", body: fd });
       const data = await res.json();
       if (!data || !data.success) {
-        alert((data && data.message) ? data.message : "Ошибка добавления");
+        alert((data && data.message) ? data.message : "Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В° Р В РўвЂР В РЎвЂўР В Р’В±Р В Р’В°Р В Р вЂ Р В Р’В»Р В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР РЏ");
         return;
       }
       location.reload();
     } catch (err) {
-      alert("Ошибка запроса: " + (err?.message || err));
+      alert("Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В° Р В Р’В·Р В Р’В°Р В РЎвЂ”Р РЋР вЂљР В РЎвЂўР РЋР С“Р В Р’В°: " + (err?.message || err));
     }
   };
 
@@ -250,14 +282,70 @@
      DELETE DOC
   ========================= */
   window.deleteDoc = function (id) {
-    if (!confirm("Удалить запись?")) return;
+    if (!confirm("Р В Р в‚¬Р В РўвЂР В Р’В°Р В Р’В»Р В РЎвЂР РЋРІР‚С™Р РЋР Р‰ Р В Р’В·Р В Р’В°Р В РЎвЂ”Р В РЎвЂР РЋР С“Р РЋР Р‰?")) return;
     const fd = new FormData();
     fd.set("csrf_token", CSRF);
     fd.set("action", "delete_document");
     fd.set("id", String(id));
     fetch(location.href, { method: "POST", body: fd })
       .then(() => location.reload())
-      .catch((e) => alert("Ошибка удаления: " + (e?.message || e)));
+      .catch((e) => alert("Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В° Р РЋРЎвЂњР В РўвЂР В Р’В°Р В Р’В»Р В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР РЏ: " + (e?.message || e)));
+  };
+
+  /* =========================
+     SCANS (upload/delete)
+  ========================= */
+  window.uploadScan = async function (e, docId) {
+    e.preventDefault();
+    if (!CFG.canUploadScans) return;
+
+    const form = e.target;
+    const fileInput = form.querySelector('input[type="file"][name="scan_file"]');
+    const file = fileInput?.files?.[0];
+    if (!file) {
+      alert("Select a file");
+      return;
+    }
+
+    const fd = new FormData();
+    fd.set("csrf_token", CSRF);
+    fd.set("action", "upload_scan");
+    fd.set("doc_id", String(docId));
+    fd.set("scan_file", file);
+
+    try {
+      const res = await fetch(location.href, { method: "POST", body: fd });
+      const data = await res.json();
+      if (!data || !data.success) {
+        alert((data && data.message) ? data.message : "Upload error");
+        return;
+      }
+      location.reload();
+    } catch (err) {
+      alert("Request error: " + (err?.message || err));
+    }
+  };
+
+  window.deleteScan = async function (scanId) {
+    if (!CFG.canUploadScans) return;
+    if (!confirm("Delete this scan?")) return;
+
+    const fd = new FormData();
+    fd.set("csrf_token", CSRF);
+    fd.set("action", "delete_scan");
+    fd.set("scan_id", String(scanId));
+
+    try {
+      const res = await fetch(location.href, { method: "POST", body: fd });
+      const data = await res.json();
+      if (!data || !data.success) {
+        alert((data && data.message) ? data.message : "Delete error");
+        return;
+      }
+      location.reload();
+    } catch (err) {
+      alert("Request error: " + (err?.message || err));
+    }
   };
 
   /* =========================
@@ -293,7 +381,16 @@
       const name = contractorInput.value.trim();
       if (name === "") { innInput.value = ""; return; }
       const opt = findByName(name);
-      innInput.value = opt ? (opt.getAttribute("data-inn") || "") : "";
+      if (!opt) {
+        innInput.value = "";
+        return;
+      }
+      const expectedInn = opt.getAttribute("data-inn") || "";
+      if (innInput.value.replace(/\D/g, "") && innInput.value.replace(/\D/g, "") !== expectedInn) {
+        innInput.value = "";
+        return;
+      }
+      innInput.value = expectedInn;
     });
 
     innInput.addEventListener("input", () => {
@@ -302,7 +399,16 @@
 
       if (digits === "") { contractorInput.value = ""; return; }
       const opt = findByInn(digits);
-      contractorInput.value = opt ? opt.value : "";
+      if (!opt) {
+        contractorInput.value = "";
+        return;
+      }
+      const expectedName = opt.value || "";
+      if (contractorInput.value.trim() && contractorInput.value.trim() !== expectedName) {
+        contractorInput.value = "";
+        return;
+      }
+      contractorInput.value = expectedName;
     });
   }
 
@@ -343,7 +449,7 @@
     tds[3].appendChild(makeInput(docNum, "edit-input"));
 
     tds[4].innerHTML = "";
-    const dd = makeInput(docDate, "edit-input date-edit", "ДД.ММ.ГГ");
+    const dd = makeInput(docDate, "edit-input date-edit", "Р В РІР‚СњР В РІР‚Сњ.Р В РЎС™Р В РЎС™.Р В РІР‚СљР В РІР‚Сљ");
     tds[4].appendChild(dd);
     attachDateMask(dd);
 
@@ -398,12 +504,12 @@
       const res = await fetch(location.href, { method: "POST", body: fd });
       const data = await res.json();
       if (!data || !data.success) {
-        alert((data && data.message) ? data.message : "Ошибка сохранения");
+        alert((data && data.message) ? data.message : "Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В° Р РЋР С“Р В РЎвЂўР РЋРІР‚В¦Р РЋР вЂљР В Р’В°Р В Р вЂ¦Р В Р’ВµР В Р вЂ¦Р В РЎвЂР РЋР РЏ");
         return;
       }
       location.reload();
     } catch (err) {
-      alert("Ошибка запроса: " + (err?.message || err));
+      alert("Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В° Р В Р’В·Р В Р’В°Р В РЎвЂ”Р РЋР вЂљР В РЎвЂўР РЋР С“Р В Р’В°: " + (err?.message || err));
     }
   };
 
@@ -420,7 +526,7 @@
   }
 
   /* =========================
-     COMMENTS autosave (всегда)
+     COMMENTS autosave (Р В Р вЂ Р РЋР С“Р В Р’ВµР В РЎвЂ“Р В РўвЂР В Р’В°)
   ========================= */
   function setStatus(textarea, text) {
     const box = textarea.parentElement?.querySelector(".comment-status");
@@ -450,17 +556,18 @@
       const data = await res.json();
 
       if (!data || !data.success) {
-        setStatus(textarea, "Ошибка");
+        setStatus(textarea, "Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В°");
         return;
       }
       if (typeof data.value === "string" && data.value !== textarea.value) textarea.value = data.value;
-      setStatus(textarea, "Сохранено");
+      setStatus(textarea, "Р В Р Р‹Р В РЎвЂўР РЋРІР‚В¦Р РЋР вЂљР В Р’В°Р В Р вЂ¦Р В Р’ВµР В Р вЂ¦Р В РЎвЂў");
     } catch (_) {
-      setStatus(textarea, "Ошибка");
+      setStatus(textarea, "Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В°");
     }
   }
 
   function initComments() {
+    if (!CFG.canManageRegistry) return;
     const areas = qsa("textarea.comment-textarea");
     areas.forEach((ta) => {
       // debounce save
@@ -522,7 +629,7 @@
 
   window.printToday = function () {
     const d = CFG.currentDate || "";
-    if (!d) return alert("Не удалось определить дату");
+    if (!d) return alert("Р В РЎСљР В Р’Вµ Р РЋРЎвЂњР В РўвЂР В Р’В°Р В Р’В»Р В РЎвЂўР РЋР С“Р РЋР Р‰ Р В РЎвЂўР В РЎвЂ”Р РЋР вЂљР В Р’ВµР В РўвЂР В Р’ВµР В Р’В»Р В РЎвЂР РЋРІР‚С™Р РЋР Р‰ Р В РўвЂР В Р’В°Р РЋРІР‚С™Р РЋРЎвЂњ");
     postPrint(d, d);
   };
   window.printRange = function () {
@@ -530,13 +637,13 @@
     const toRaw = (qs("#print_to_date")?.value || "").trim();
     const from = convertInputDateToYMD(fromRaw);
     const to = convertInputDateToYMD(toRaw);
-    if (!from || !to) return alert("Неверный формат дат (ДД.ММ.ГГ или ДД.ММ.ГГГГ)");
+    if (!from || !to) return alert("Р В РЎСљР В Р’ВµР В Р вЂ Р В Р’ВµР РЋР вЂљР В Р вЂ¦Р РЋРІР‚в„–Р В РІвЂћвЂ“ Р РЋРІР‚С›Р В РЎвЂўР РЋР вЂљР В РЎВР В Р’В°Р РЋРІР‚С™ Р В РўвЂР В Р’В°Р РЋРІР‚С™ (Р В РІР‚СњР В РІР‚Сњ.Р В РЎС™Р В РЎС™.Р В РІР‚СљР В РІР‚Сљ Р В РЎвЂР В Р’В»Р В РЎвЂ Р В РІР‚СњР В РІР‚Сњ.Р В РЎС™Р В РЎС™.Р В РІР‚СљР В РІР‚СљР В РІР‚СљР В РІР‚Сљ)");
     postPrint(from, to);
   };
   window.openDate = function () {
     const v = (qs("#select_date")?.value || "").trim();
     const ymd = convertInputDateToYMD(v);
-    if (!ymd) return alert("Неверный формат даты (ДД.ММ.ГГ или ДД.ММ.ГГГГ)");
+    if (!ymd) return alert("Р В РЎСљР В Р’ВµР В Р вЂ Р В Р’ВµР РЋР вЂљР В Р вЂ¦Р РЋРІР‚в„–Р В РІвЂћвЂ“ Р РЋРІР‚С›Р В РЎвЂўР РЋР вЂљР В РЎВР В Р’В°Р РЋРІР‚С™ Р В РўвЂР В Р’В°Р РЋРІР‚С™Р РЋРІР‚в„– (Р В РІР‚СњР В РІР‚Сњ.Р В РЎС™Р В РЎС™.Р В РІР‚СљР В РІР‚Сљ Р В РЎвЂР В Р’В»Р В РЎвЂ Р В РІР‚СњР В РІР‚Сњ.Р В РЎС™Р В РЎС™.Р В РІР‚СљР В РІР‚СљР В РІР‚СљР В РІР‚Сљ)");
     location.href = `?date=${encodeURIComponent(ymd)}`;
   };
   window.performSearch = function () {
@@ -589,8 +696,8 @@
   };
   window.sendSelectedReestrEmail = async function () {
     const email = (qs("#email_address")?.value || "").trim();
-    if (!selectedReestrNumber) return alert("Не выбран реестр");
-    if (!email) return alert("Укажите e-mail");
+    if (!selectedReestrNumber) return alert("Р В РЎСљР В Р’Вµ Р В Р вЂ Р РЋРІР‚в„–Р В Р’В±Р РЋР вЂљР В Р’В°Р В Р вЂ¦ Р РЋР вЂљР В Р’ВµР В Р’ВµР РЋР С“Р РЋРІР‚С™Р РЋР вЂљ");
+    if (!email) return alert("Р В Р в‚¬Р В РЎвЂќР В Р’В°Р В Р’В¶Р В РЎвЂР РЋРІР‚С™Р В Р’Вµ e-mail");
 
     const fd = new FormData();
     fd.set("csrf_token", CSRF);
@@ -602,18 +709,18 @@
       const res = await fetch(location.href, { method: "POST", body: fd });
       const data = await res.json();
       if (!data || !data.success) {
-        alert((data && data.message) ? data.message : "Ошибка отправки");
+        alert((data && data.message) ? data.message : "Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В° Р В РЎвЂўР РЋРІР‚С™Р В РЎвЂ”Р РЋР вЂљР В Р’В°Р В Р вЂ Р В РЎвЂќР В РЎвЂ");
         return;
       }
-      alert("Письмо отправлено!");
+      alert("Р В РЎСџР В РЎвЂР РЋР С“Р РЋР Р‰Р В РЎВР В РЎвЂў Р В РЎвЂўР РЋРІР‚С™Р В РЎвЂ”Р РЋР вЂљР В Р’В°Р В Р вЂ Р В Р’В»Р В Р’ВµР В Р вЂ¦Р В РЎвЂў!");
       closeModal("email");
     } catch (err) {
-      alert("Ошибка запроса: " + (err?.message || err));
+      alert("Р В РЎвЂєР РЋРІвЂљВ¬Р В РЎвЂР В Р’В±Р В РЎвЂќР В Р’В° Р В Р’В·Р В Р’В°Р В РЎвЂ”Р РЋР вЂљР В РЎвЂўР РЋР С“Р В Р’В°: " + (err?.message || err));
     }
   };
 
   window.backup = function () {
-    alert("Для бэкапа используйте phpMyAdmin или mysqldump");
+    alert("Р В РІР‚СњР В Р’В»Р РЋР РЏ Р В Р’В±Р РЋР РЉР В РЎвЂќР В Р’В°Р В РЎвЂ”Р В Р’В° Р В РЎвЂР РЋР С“Р В РЎвЂ”Р В РЎвЂўР В Р’В»Р РЋР Р‰Р В Р’В·Р РЋРЎвЂњР В РІвЂћвЂ“Р РЋРІР‚С™Р В Р’Вµ phpMyAdmin Р В РЎвЂР В Р’В»Р В РЎвЂ mysqldump");
   };
 
   window.startRowEdit = function (btn) {
@@ -653,7 +760,7 @@
     bindPairInputs(qs("#contractor"), qs("#inn"));
     initComments();
 
-    // ✅ FIX: после поиска модалка сама открывается
+    // Р Р†РЎС™РІР‚В¦ FIX: Р В РЎвЂ”Р В РЎвЂўР РЋР С“Р В Р’В»Р В Р’Вµ Р В РЎвЂ”Р В РЎвЂўР В РЎвЂР РЋР С“Р В РЎвЂќР В Р’В° Р В РЎВР В РЎвЂўР В РўвЂР В Р’В°Р В Р’В»Р В РЎвЂќР В Р’В° Р РЋР С“Р В Р’В°Р В РЎВР В Р’В° Р В РЎвЂўР РЋРІР‚С™Р В РЎвЂќР РЋР вЂљР РЋРІР‚в„–Р В Р вЂ Р В Р’В°Р В Р’ВµР РЋРІР‚С™Р РЋР С“Р РЋР РЏ
     if (CFG.searchPerformed) {
       showModal("search");
     }
